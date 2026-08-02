@@ -1,0 +1,84 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/player_combat.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/debug/debug_overlay.gd" id="2_overlay"]
+[ext_resource type="Resource" path="res://data/attacks/glaive_l1.tres" id="3_glaive_l1"]
+
+[sub_resource type="Environment" id="Environment_arena"]
+background_mode = 1
+background_color = Color(0.09, 0.1, 0.12, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.48, 0.55, 1)
+ambient_light_energy = 0.6
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
+radius = 0.5
+height = 2.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.5
+height = 2.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hitbox"]
+size = Vector3(1, 1, 2)
+
+[node name="Arena" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_arena")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.78086, -0.52608, 0.33686, 0, 0.53923, 0.84215, -0.62469, -0.6576, 0.42108, 0, 8, 0)
+shadow_enabled = true
+
+; Orthogonal, size 14, position (0, 14, 10), rotation (-50, 0, 0) degrees on X.
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.6427876, 0.7660444, 0, -0.7660444, 0.6427876, 0, 14, 10)
+projection = 1
+size = 14.0
+
+; 20 x 1 x 20, top face sitting exactly at y = 0 so the player stands on zero.
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(20, 1, 20)
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("1_player")
+starting_attack = ExtResource("3_glaive_l1")
+hitbox_path = NodePath("Hitbox")
+mesh_path = NodePath("Mesh")
+
+[node name="Mesh" type="MeshInstance3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+; Layer 0 / mask 2: the hitbox detects only things on the "enemy" layer.
+; Without this it would report the floor's collision body as a hit every swing.
+; Position is overwritten each active frame from AttackData.hitbox_offset.
+[node name="Hitbox" type="Area3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1.5)
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player/Hitbox"]
+shape = SubResource("BoxShape3D_hitbox")
+disabled = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="DebugOverlay" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_overlay")
+player_path = NodePath("../../Player")
