@@ -1,2 +1,60 @@
 # Normalize EOL for all files that Git considers text files.
 * text=auto eol=lf
+
+# ---------------------------------------------------------------------------
+# GIT LFS — large binary assets
+#
+# Why: Git stores a full copy of every version of every file. A 20 MB creature
+# model edited fifty times becomes a 1 GB repository. LFS keeps one small
+# pointer in the repo and the real file on the server, so history stays light.
+#
+# These rules must exist BEFORE the first binary asset is committed. Adding
+# them afterwards means rewriting history and force-pushing.
+#
+# The "-text" flag stops Git mangling line endings inside binary files.
+# ---------------------------------------------------------------------------
+
+# 3D models
+*.glb   filter=lfs diff=lfs merge=lfs -text
+*.gltf  filter=lfs diff=lfs merge=lfs -text
+*.bin   filter=lfs diff=lfs merge=lfs -text
+*.fbx   filter=lfs diff=lfs merge=lfs -text
+*.obj   filter=lfs diff=lfs merge=lfs -text
+*.dae   filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+
+# Textures
+*.png   filter=lfs diff=lfs merge=lfs -text
+*.jpg   filter=lfs diff=lfs merge=lfs -text
+*.jpeg  filter=lfs diff=lfs merge=lfs -text
+*.tga   filter=lfs diff=lfs merge=lfs -text
+*.bmp   filter=lfs diff=lfs merge=lfs -text
+*.psd   filter=lfs diff=lfs merge=lfs -text
+*.exr   filter=lfs diff=lfs merge=lfs -text
+*.hdr   filter=lfs diff=lfs merge=lfs -text
+*.webp  filter=lfs diff=lfs merge=lfs -text
+
+# Audio
+*.wav   filter=lfs diff=lfs merge=lfs -text
+*.ogg   filter=lfs diff=lfs merge=lfs -text
+*.mp3   filter=lfs diff=lfs merge=lfs -text
+*.flac  filter=lfs diff=lfs merge=lfs -text
+
+# Video
+*.ogv   filter=lfs diff=lfs merge=lfs -text
+*.webm  filter=lfs diff=lfs merge=lfs -text
+*.mp4   filter=lfs diff=lfs merge=lfs -text
+
+# Fonts
+*.ttf   filter=lfs diff=lfs merge=lfs -text
+*.otf   filter=lfs diff=lfs merge=lfs -text
+*.woff  filter=lfs diff=lfs merge=lfs -text
+*.woff2 filter=lfs diff=lfs merge=lfs -text
+
+# Godot's BINARY resource formats. The text formats (.tres / .tscn) are
+# deliberately NOT listed — they must stay readable and diffable in Git.
+*.res   filter=lfs diff=lfs merge=lfs -text
+*.scn   filter=lfs diff=lfs merge=lfs -text
+
+# NOTE: *.svg is intentionally absent. SVG is text, and icon.svg is already
+# committed as text.
