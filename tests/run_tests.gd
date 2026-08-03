@@ -9,14 +9,33 @@
 extends SceneTree
 
 const SUITE_PATHS: Array[String] = [
+	# Pure logic
 	"res://tests/test_attack_data.gd",
 	"res://tests/test_input_buffer.gd",
 	"res://tests/test_momentum.gd",
 	"res://tests/test_combo_resolution.gd",
+	# The state machine and the tick
+	"res://tests/test_state_machine.gd",
+	"res://tests/test_hitbox.gd",
+	"res://tests/test_hitstop.gd",
+	"res://tests/test_tick_order.gd",
+	# Data and wiring
+	"res://tests/test_attack_resources.gd",
+	"res://tests/test_scene_wiring.gd",
+	# The non-negotiables
+	"res://tests/test_design_rules.gd",
 ]
 
 
-func _initialize() -> void:
+## Suites run on the first frame rather than in _initialize(), because the
+## scene tree's root is not live until the loop starts iterating — and the
+## suites that exercise the real tick need to park a node in the tree.
+func _process(_delta: float) -> bool:
+	_run_all()
+	return true
+
+
+func _run_all() -> void:
 	var total_passed := 0
 	var total_failed := 0
 

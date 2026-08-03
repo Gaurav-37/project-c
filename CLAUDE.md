@@ -130,8 +130,8 @@ godot --headless --path . --quit-after 60
 # Syntax-check a single script
 godot --headless --path . --check-only --script scripts/combat/player_combat.gd
 
-# Run the test suite (GUT)
-godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
+# Run the test suite (no GUT dependency — plain GDScript, exits 1 on failure)
+godot --headless --path . --script res://tests/run_tests.gd
 ```
 
 **Always run at least the first command after changing combat code.** Report the actual output; do not assume success.
@@ -145,8 +145,14 @@ The combat maths is pure logic and should be unit-tested:
 - `AttackData` phase helpers — `is_in_startup`, `is_in_active`, `is_in_recovery`
 - Cancel-window boundaries, especially the exact opening frame
 - `InputBuffer` — expiry by age, newest-first consumption, one-press-one-action
-- Momentum arithmetic — gain, spend, clamping, interrupt loss
+- Momentum arithmetic — gain, spend, clamping, interrupt loss, decay
 - Combo resolution — momentum gating, hit-confirm requirements
+- Hitbox activation — live on the active frames and nowhere else
+- Hit resolution — hit vs. armour bounce, one hit per target per swing
+- The tick — hit-stop skips gameplay frames without stopping the input buffer
+- The `.tres` files themselves — links resolve, cancel windows open inside recovery
+- Scene wiring — autoload name, hitbox mask, attack library contents
+- The non-negotiables — a text scan for `randf`, `Timer`, `delta`, `AnimationPlayer`
 
 These tests are the guardrail against AI-written changes silently breaking timing.
 
@@ -164,9 +170,9 @@ Nobody can reason their way to a good hit-stop duration.
 
 ## Current position
 
-**Build order steps 1–5 are scaffolded.** Working toward step 6 — a second attack and a cancel window, producing the first real combo.
+**Build order steps 1–6 are scaffolded.** Step 6 (a second attack and a cancel window, producing the first real combo) is done: `glaive_l2.tres` (L2 Sweep) exists alongside `glaive_l1.tres` (L1 Thrust), linked by a `ComboLink` on L1's `attack` input per the §6.7 frame table (L1 startup 6/active 3/recovery 12/cancel@4/+4 Momentum; L2 startup 7/active 4/recovery 13/cancel@4/+6 Momentum). Both attacks are wired into the Player's `attack_library` in `arena.tscn`. L2's damage, poise, and hitbox size are placeholder values (not specified in the design doc's economy table) and are the designer's to tune. Working toward step 7 — hit-stop.
 
-Remaining order: 6 combo · 7 hit-stop · 8 target snapping · 9 combo tree from data · 10 momentum · 11 dodge · 12 parry · 13 creature parts · 14 enemy moveset · 15 rage · 16 threshold · 17 knockdown.
+Remaining order: 7 hit-stop · 8 target snapping · 9 combo tree from data · 10 momentum · 11 dodge · 12 parry · 13 creature parts · 14 enemy moveset · 15 rage · 16 threshold · 17 knockdown.
 
 **Do not build ahead.** Each step must be playable and verified before the next begins.
 

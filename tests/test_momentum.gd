@@ -53,6 +53,59 @@ func test_interrupt_loss_applies_only_mid_attack() -> void:
 	pc.free()
 
 
+func test_momentum_changed_signal_reports_the_new_total() -> void:
+	var pc := _make_player()
+	var seen := {"value": -1.0, "count": 0}
+	pc.momentum_changed.connect(func(v: float) -> void:
+		seen.value = v
+		seen.count += 1)
+
+	pc._gain_momentum(12.0)
+	check_eq(seen.value, 12.0, "the signal carries the new total, not the delta")
+
+	pc._spend_momentum(2.0)
+	check_eq(seen.value, 10.0, "spending emits too, so the UI never goes stale")
+	check_eq(seen.count, 2, "one emission per change")
+	pc.free()
+
+
+# ---------------------------------------------------------------------------
+# DECAY — turtling is never free (design doc 5.4)
+# ---------------------------------------------------------------------------
+
+func test_no_decay_inside_the_grace_period() -> void:
+	var pc := _make_player()
+	pc.momentum = 50.0
+	pc.frames_since_contact = CombatConstants.MOMENTUM_DECAY_GRACE_FRAMES
+
+	pc._update_momentum_decay()
+
+	check_eq(pc.momentum, 50.0, "momentum holds for the full grace period after contact — repositioning is not punished")
+	pc.free()
+
+
+func test_decay_starts_one_frame_after_the_grace_period() -> void:
+	var pc := _make_player()
+	pc.momentum = 50.0
+	pc.frames_since_contact = CombatConstants.MOMENTUM_DECAY_GRACE_FRAMES + 1
+
+	pc._update_momentum_decay()
+
+	check_approx(pc.momentum, 50.0 - CombatConstants.MOMENTUM_DECAY_PER_FRAME, "past the grace period the bank bleeds one step per frame")
+	pc.free()
+
+
+func test_decay_cannot_push_momentum_negative() -> void:
+	var pc := _make_player()
+	pc.momentum = 0.0
+	pc.frames_since_contact = 10_000
+
+	pc._update_momentum_decay()
+
+	check_eq(pc.momentum, 0.0, "an empty bank stays empty")
+	pc.free()
+
+
 func test_no_interrupt_loss_outside_attack_state() -> void:
 	var pc := _make_player()
 	pc.momentum = 50.0
