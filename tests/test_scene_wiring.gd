@@ -121,6 +121,48 @@ func test_the_hitbox_ships_switched_off() -> void:
 	arena.free()
 
 
+# ---------------------------------------------------------------------------
+# THE DUMMY — something for the hitbox to find
+# ---------------------------------------------------------------------------
+
+func test_the_arena_has_a_dummy_to_hit() -> void:
+	var arena := _arena()
+	var dummy := arena.get_node_or_null("Dummy")
+	check(dummy != null, "the arena has a Dummy node")
+	check(dummy is TargetDummy, "and it runs target_dummy.gd — without this the hitbox sweeps empty air")
+	arena.free()
+
+
+func test_the_dummy_sits_on_the_layer_the_hitbox_scans() -> void:
+	var arena := _arena()
+	var dummy := arena.get_node("Dummy") as TargetDummy
+	var player := arena.get_node("Player") as PlayerCombat
+	var hitbox := player.get_node(player.hitbox_path) as Area3D
+
+	check(dummy.collision_layer & hitbox.collision_mask != 0,
+		"the dummy is on a layer the player's hitbox actually scans — mismatch here means every swing silently misses")
+	check(dummy.collision_layer & 1 != 0,
+		"and on layer 1 as well, so the player's body collides with it instead of walking through")
+	arena.free()
+
+
+func test_the_dummy_is_in_front_of_the_player() -> void:
+	var arena := _arena()
+	var dummy := arena.get_node("Dummy") as TargetDummy
+	var player := arena.get_node("Player") as PlayerCombat
+	var attack := player.starting_attack
+
+	# The player does not turn yet — rotation is step 8 — so forward is -Z,
+	# and the hitbox only ever sweeps that way.
+	check(dummy.position.z < player.position.z,
+		"the dummy is on the player's -Z side, which is the only direction the hitbox reaches")
+
+	var reach: float = absf(attack.hitbox_offset.z) + attack.hitbox_size.z * 0.5
+	check(absf(dummy.position.z - player.position.z) < reach,
+		"and close enough that the first swing of a session connects without moving first (reach %.1f)" % reach)
+	arena.free()
+
+
 func test_the_debug_overlay_is_pointed_at_the_player() -> void:
 	var arena := _arena()
 	var overlay := arena.get_node_or_null("UI/DebugOverlay")

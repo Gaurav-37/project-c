@@ -46,11 +46,30 @@ jobs:
 
       - name: Import the project
         # A fresh clone has no .godot/ cache, so the first open builds one.
-        # This step failing means the project itself no longer opens cleanly —
-        # a broken scene or resource path — which is worth knowing separately
-        # from a failing assertion.
-        run: godot --headless --path . --quit-after 300
+        #
+        # This MUST be --editor. Godot only registers class_name types
+        # (AttackData, PlayerCombat, TargetDummy...) during an editor scan.
+        # In plain run mode on a fresh checkout those names do not exist yet,
+        # so every script mentioning one fails to parse — and Godot still
+        # exits 0. That is a green tick over a suite that never ran.
+        run: godot --headless --path . --editor --quit
 
       - name: Run the combat test suite
-        # run_tests.gd exits 1 if any assertion fails, which fails the job.
-        run: godot --headless --path . --script res://tests/run_tests.gd
+        run: |
+          set -o pipefail
+          godot --headless --path . --script res://tests/run_tests.gd 2>&1 | tee result.txt
+
+          # run_tests.gd exits 1 on a failed assertion, which fails the job on
+          # its own. These two checks cover the nastier case: a suite that
+          # never ran at all, which exits 0 and looks identical to success.
+          if grep -q 'SCRIPT ERROR' result.txt; then
+            echo "::error::Godot reported a script error — see the log above"
+            exit 1
+          fi
+
+          total=$(grep -oE '^[0-9]+ passed' result.txt | grep -oE '[0-9]+' || true)
+          if [ -z "$total" ] || [ "$total" -lt 1 ]; then
+            echo "::error::no assertions ran — the suite did not report a result"
+            exit 1
+          fi
+          echo "$total assertions ran"

@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/player_combat.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/debug/debug_overlay.gd" id="2_overlay"]
+[ext_resource type="Script" path="res://scripts/combat/target_dummy.gd" id="5_dummy"]
 [ext_resource type="Resource" path="res://data/attacks/glaive_l1.tres" id="3_glaive_l1"]
 [ext_resource type="Resource" path="res://data/attacks/glaive_l2.tres" id="4_glaive_l2"]
 
@@ -22,6 +23,12 @@ height = 2.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hitbox"]
 size = Vector3(1, 1, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dummy"]
+size = Vector3(1, 2, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_dummy"]
+size = Vector3(1, 2, 1)
 
 [node name="Arena" type="Node3D"]
 
@@ -71,6 +78,40 @@ monitoring = false
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player/Hitbox"]
 shape = SubResource("BoxShape3D_hitbox")
 disabled = true
+
+; Build order step 4's other half: something to hit.
+;
+; Placed on -Z because the player does not turn yet — rotation and target
+; snapping are step 8, so "forward" is always -Z and the hitbox only ever
+; sweeps that way. Sits just inside L1's reach from the spawn point, so the
+; first left-click of a session connects without moving first.
+;
+; Layer 3 = bits 1 and 2. Bit 2 is what the player's hitbox scans for; bit 1
+; is what the player's BODY collides with, so the dummy is solid rather than
+; something you walk through.
+[node name="Dummy" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.2)
+collision_layer = 3
+collision_mask = 0
+script = ExtResource("5_dummy")
+mesh_path = NodePath("Mesh")
+label_path = NodePath("Label")
+
+[node name="Mesh" type="MeshInstance3D" parent="Dummy"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("BoxMesh_dummy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dummy"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_dummy")
+
+[node name="Label" type="Label3D" parent="Dummy"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.002
+text = "HP"
 
 [node name="UI" type="CanvasLayer" parent="."]
 

@@ -19,6 +19,7 @@ const SUITE_PATHS: Array[String] = [
 	"res://tests/test_hitbox.gd",
 	"res://tests/test_hitstop.gd",
 	"res://tests/test_tick_order.gd",
+	"res://tests/test_target_dummy.gd",
 	# Data and wiring
 	"res://tests/test_attack_resources.gd",
 	"res://tests/test_scene_wiring.gd",
