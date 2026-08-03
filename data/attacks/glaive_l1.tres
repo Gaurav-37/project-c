@@ -1,6 +1,14 @@
-[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="AttackData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_attack_data"]
+[ext_resource type="Script" path="res://scripts/combat/combo_link.gd" id="2_combo_link"]
+
+[sub_resource type="Resource" id="ComboLink_l1_to_l2"]
+script = ExtResource("2_combo_link")
+input_action = &"attack"
+next_attack_id = &"glaive_l2"
+required_momentum = 0.0
+requires_hit_confirm = false
 
 [resource]
 script = ExtResource("1_attack_data")
@@ -29,3 +37,4 @@ camera_shake = 0.0
 lunge_distance = 0.0
 hitbox_offset = Vector3(0, 1, -1.5)
 hitbox_size = Vector3(1, 1, 2)
+links = Array[ExtResource("2_combo_link")]([SubResource("ComboLink_l1_to_l2")])

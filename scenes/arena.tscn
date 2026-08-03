@@ -1,8 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/player_combat.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/debug/debug_overlay.gd" id="2_overlay"]
 [ext_resource type="Resource" path="res://data/attacks/glaive_l1.tres" id="3_glaive_l1"]
+[ext_resource type="Resource" path="res://data/attacks/glaive_l2.tres" id="4_glaive_l2"]
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -46,6 +47,7 @@ size = Vector3(20, 1, 20)
 [node name="Player" type="CharacterBody3D" parent="."]
 script = ExtResource("1_player")
 starting_attack = ExtResource("3_glaive_l1")
+attack_library = [ExtResource("3_glaive_l1"), ExtResource("4_glaive_l2")]
 hitbox_path = NodePath("Hitbox")
 mesh_path = NodePath("Mesh")
 

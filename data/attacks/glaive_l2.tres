@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1_attack_data"]
+
+[resource]
+script = ExtResource("1_attack_data")
+id = &"glaive_l2"
+display_name = "L2 Sweep"
+animation_name = &""
+startup_frames = 7
+active_frames = 4
+recovery_frames = 13
+cancel_to_attack_frame = 4
+cancel_to_dodge_frame = -1
+cancel_to_parry_frame = -1
+cancel_to_swap_frame = 4
+damage = 8.0
+part_damage_multiplier = 1.0
+wound_application = 1.0
+poise_damage = 5.0
+armour_pierce = 0.0
+momentum_gain = 6.0
+momentum_cost = 0.0
+hitstop_frames_on_hit = 4
+hitstop_frames_on_bounce = 11
+snap_max_angle_deg = 30.0
+snap_max_distance = 0.5
+camera_shake = 0.0
+lunge_distance = 0.0
+hitbox_offset = Vector3(0, 1, -1.5)
+hitbox_size = Vector3(2, 1, 1.8)
