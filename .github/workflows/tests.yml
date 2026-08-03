@@ -1,0 +1,56 @@
+# Runs the combat test suite on GitHub every time you push.
+#
+# WHY THIS EXISTS: there is no reviewer on this project, so the test suite is
+# the only thing standing between a mistake and master. This makes the suite
+# run on a clean machine that has none of your local state — no .godot import
+# cache, no editor open, nothing left over from a previous session. A test
+# that passes on your PC and fails here means the repository is missing
+# something that only exists on your disk.
+#
+# WHERE TO SEE IT: the "Actions" tab on github.com/Gaurav-37/project-c, and a
+# green tick or red X next to each commit in the commit list.
+#
+# NOTHING TO INSTALL. GitHub runs this; your machine is not involved.
+
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:   # adds a "Run workflow" button, for running it by hand
+
+env:
+  # Keep this in step with the Godot version you have locally.
+  GODOT_VERSION: 4.7.1
+
+jobs:
+  combat-tests:
+    name: Combat test suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        # NOTE: if binary assets (models, audio) ever start arriving through
+        # Git LFS and the tests come to depend on them, add `with: lfs: true`.
+        # Left off for now so the run does not spend LFS bandwidth it has no
+        # use for.
+
+      - name: Install Godot ${{ env.GODOT_VERSION }}
+        run: |
+          BUILD="Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          curl -fsSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/${BUILD}.zip"
+          unzip -q godot.zip
+          sudo install -m 755 "$BUILD" /usr/local/bin/godot
+          godot --version
+
+      - name: Import the project
+        # A fresh clone has no .godot/ cache, so the first open builds one.
+        # This step failing means the project itself no longer opens cleanly —
+        # a broken scene or resource path — which is worth knowing separately
+        # from a failing assertion.
+        run: godot --headless --path . --quit-after 300
+
+      - name: Run the combat test suite
+        # run_tests.gd exits 1 if any assertion fails, which fails the job.
+        run: godot --headless --path . --script res://tests/run_tests.gd
